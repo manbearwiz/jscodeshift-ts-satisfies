@@ -1,0 +1,1 @@
+# jscodeshift-ts-satisfies
