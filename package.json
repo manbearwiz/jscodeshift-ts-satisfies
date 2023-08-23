@@ -1,0 +1,29 @@
+{
+  "name": "jscodeshift-ts-satisfies",
+  "version": "1.0.0",
+  "description": "A jscodeshift codemod to transform type annotations to use TS4.9+ satisfies keyword",
+  "main": "index.js",
+  "dependencies": {
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/manbearwiz/jscodeshift-ts-satisfies.git"
+  },
+  "keywords": [
+    "jscodeshift",
+    "typescript",
+    "ts",
+    "satisfies",
+    "codemod"
+  ],
+  "author": "Kevin Brey",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/manbearwiz/jscodeshift-ts-satisfies/issues"
+  },
+  "homepage": "https://github.com/manbearwiz/jscodeshift-ts-satisfies#readme"
+}
