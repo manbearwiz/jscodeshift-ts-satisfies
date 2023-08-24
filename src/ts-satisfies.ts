@@ -6,6 +6,8 @@ import type {
   TSAsExpression,
   JSXIdentifier,
   TSTypeParameter,
+  ArrowFunctionExpression,
+  Node,
 } from 'jscodeshift';
 
 function isVariableDeclarator(
@@ -18,9 +20,14 @@ function isVariableDeclarator(
   return declaration?.type === 'VariableDeclarator';
 }
 
-function isTSAsExpression(init: unknown): init is TSAsExpression {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-  return (init as any)?.type === 'TSAsExpression';
+function isTSAsExpression(node?: Node | null): node is TSAsExpression {
+  return node?.type === 'TSAsExpression';
+}
+
+function isArrowFunctionExpression(
+  node?: Node | null,
+): node is ArrowFunctionExpression {
+  return node?.type === 'ArrowFunctionExpression';
 }
 
 export default function transform(
@@ -35,8 +42,9 @@ export default function transform(
       .filter(isVariableDeclarator)
       .filter(
         (d) =>
-          (d.id.type === 'Identifier' && !!d.id.typeAnnotation) ||
-          isTSAsExpression(d?.init),
+          d.id.type === 'Identifier' &&
+          !isArrowFunctionExpression(d.init) &&
+          (!!d.id.typeAnnotation || isTSAsExpression(d?.init)),
       )
       .forEach((declarator) => {
         const id = declarator.id as Identifier;
@@ -48,7 +56,7 @@ export default function transform(
             ? declarator.init.expression
             : declarator.init;
         if (init && annotation) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
           declarator.init = j.tsSatisfiesExpression(init, annotation as any);
         }
         id.typeAnnotation = null;
@@ -57,12 +65,9 @@ export default function transform(
   });
 
   root.find(j.CallExpression).forEach(({ node }) => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     node.arguments = node.arguments.map((arg) =>
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-return
       isTSAsExpression(arg)
-        ? // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-          j.tsSatisfiesExpression(arg.expression, arg.typeAnnotation)
+        ? j.tsSatisfiesExpression(arg.expression, arg.typeAnnotation)
         : arg,
     );
   });

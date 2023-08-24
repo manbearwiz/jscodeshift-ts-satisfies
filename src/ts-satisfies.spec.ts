@@ -49,4 +49,12 @@ describe('ts-satisfies', () => {
     `build({ field: null, isVisible: true } satisfies Foo);`,
     'handles function args',
   );
+
+  defineInlineTest(
+    transform,
+    {},
+    `const Default: Fn = () => { return null; }`,
+    `const Default: Fn = () => { return null; }`,
+    'not modify function',
+  );
 });
