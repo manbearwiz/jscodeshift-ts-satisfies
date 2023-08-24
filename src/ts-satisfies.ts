@@ -40,7 +40,10 @@ const isVariableDeclarator = nodeTypeGuard('VariableDeclarator');
 function isArrayOrObjectExpression(
   node?: Node | null,
 ): node is ArrayExpression | ObjectExpression {
-  return isArrayExpression(node) || isObjectExpression(node);
+  return (
+    (isArrayExpression(node) && !!node.elements.length) ||
+    isObjectExpression(node)
+  );
 }
 
 export default function transform(

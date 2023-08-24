@@ -21,9 +21,17 @@ describe('ts-satisfies', () => {
   defineInlineTest(
     transform,
     {},
-    `const routes: Route[] = [ { label: 'Label' } ];`,
-    `const routes = [ { label: 'Label' } ] satisfies Route[];`,
+    `const a: T[] = [ { label: 'Label' } ];`,
+    `const a = [ { label: 'Label' } ] satisfies T[];`,
     'handles array types',
+  );
+
+  defineInlineTest(
+    transform,
+    {},
+    `const a: T[] = []`,
+    `const a: T[] = []`,
+    'not modify empty arrays',
   );
 
   defineInlineTest(
