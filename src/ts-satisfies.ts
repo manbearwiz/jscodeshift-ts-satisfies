@@ -76,7 +76,10 @@ export default function transform(
 
         if (
           init &&
-          (isTSArrayType(annotation) || isTSTypeReference(annotation)) &&
+          (isTSArrayType(annotation) ||
+            (isTSTypeReference(annotation) &&
+              isIdentifier(annotation.typeName) &&
+              annotation.typeName.name !== 'const')) &&
           (!typeRestriction ||
             (isTSTypeReference(annotation) &&
               isIdentifier(annotation.typeName) &&

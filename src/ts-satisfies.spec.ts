@@ -81,4 +81,12 @@ describe('ts-satisfies', () => {
     `const x = bar.foo as Foo`,
     'not modify casts',
   );
+
+  defineInlineTest(
+    transform,
+    {},
+    `const align = ['left', 'right'] as const`,
+    `const align = ['left', 'right'] as const`,
+    'not modify const assertions',
+  );
 });
