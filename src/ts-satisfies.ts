@@ -48,7 +48,7 @@ export default function transform(
             ? declarator.init.expression
             : declarator.init;
         if (init && annotation) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-argument
           declarator.init = j.tsSatisfiesExpression(init, annotation as any);
         }
         id.typeAnnotation = null;
