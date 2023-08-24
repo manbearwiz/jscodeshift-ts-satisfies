@@ -2,13 +2,12 @@
   "name": "jscodeshift-ts-satisfies",
   "version": "1.0.0",
   "description": "A jscodeshift codemod to transform type annotations to use TS4.9+ satisfies keyword",
-  "main": "index.js",
-  "dependencies": {
+  "author": "Kevin Brey",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/manbearwiz/jscodeshift-ts-satisfies/issues"
   },
-  "devDependencies": {},
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "homepage": "https://github.com/manbearwiz/jscodeshift-ts-satisfies#readme",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/manbearwiz/jscodeshift-ts-satisfies.git"
@@ -20,10 +19,40 @@
     "satisfies",
     "codemod"
   ],
-  "author": "Kevin Brey",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/manbearwiz/jscodeshift-ts-satisfies/issues"
+  "scripts": {
+    "test": "jest",
+    "prelint": "prettier --check \"**/*.{ts,json,md}\"",
+    "lint": "eslint src",
+    "prelint:fix": "prettier --write \"**/*.{ts,json,md}\"",
+    "lint:fix": "eslint src --fix",
+    "build": "tsc",
+    "prepare": "husky install"
   },
-  "homepage": "https://github.com/manbearwiz/jscodeshift-ts-satisfies#readme"
+  "dependencies": {
+    "jscodeshift": "^0.15.0"
+  },
+  "devDependencies": {
+    "@tsconfig/recommended": "^1.0.2",
+    "@tsconfig/strictest": "^2.0.1",
+    "@types/jest": "29.5.3",
+    "@types/jscodeshift": "0.11.6",
+    "@typescript-eslint/eslint-plugin": "^6.4.1",
+    "@typescript-eslint/parser": "^6.4.1",
+    "babel-preset-env": "^1.6.0",
+    "eslint": "^8.47.0",
+    "eslint-config-prettier": "^9.0.0",
+    "husky": "^8.0.3",
+    "jest": "^29.6.3",
+    "lint-staged": "^14.0.1",
+    "prettier": "3.0.2",
+    "ts-jest": "29.1.1",
+    "ts-node": "github:TypeStrong/ts-node#main",
+    "typescript": "5.1.6"
+  },
+  "lint-staged": {
+    "**/*": "prettier --write --ignore-unknown"
+  },
+  "overrides": {
+    "ast-types": "0.16.1"
+  }
 }
