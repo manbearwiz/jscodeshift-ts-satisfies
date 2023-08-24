@@ -89,4 +89,20 @@ describe('ts-satisfies', () => {
     `const align = ['left', 'right'] as const`,
     'not modify const assertions',
   );
+
+  defineInlineTest(
+    transform,
+    {},
+    `fn({} as any as T)`,
+    `fn({} as any as T)`,
+    'not modify intentional any conversions in functions',
+  );
+
+  defineInlineTest(
+    transform,
+    {},
+    `const a = ({} as any) as T`,
+    `const a = ({} as any) as T`,
+    'not modify intentional any conversions in declerations',
+  );
 });

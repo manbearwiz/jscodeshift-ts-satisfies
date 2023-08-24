@@ -94,7 +94,7 @@ export default function transform(
 
   root.find(j.CallExpression).forEach(({ node }) => {
     node.arguments = node.arguments.map((arg) =>
-      isTSAsExpression(arg)
+      isTSAsExpression(arg) && isArrayOrObjectExpression(arg.expression)
         ? j.tsSatisfiesExpression(arg.expression, arg.typeAnnotation)
         : arg,
     );
