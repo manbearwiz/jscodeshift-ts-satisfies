@@ -8,6 +8,9 @@ import type {
   TSTypeParameter,
   ArrowFunctionExpression,
   Node,
+  Options,
+  TSTypeReference,
+  TSArrayType,
 } from 'jscodeshift';
 
 function isVariableDeclarator(
@@ -30,12 +33,28 @@ function isArrowFunctionExpression(
   return node?.type === 'ArrowFunctionExpression';
 }
 
+function isTSTypeReference(node?: Node | null): node is TSTypeReference {
+  return node?.type === 'TSTypeReference';
+}
+
+function isTSArrayType(node?: Node | null): node is TSArrayType {
+  return node?.type === 'TSArrayType';
+}
+
+function isIdentifier(node?: Node | null): node is Identifier {
+  return node?.type === 'Identifier';
+}
+
 export default function transform(
   file: FileInfo,
   api: API,
+  options: Options,
 ): string | undefined {
   const j = api.jscodeshift;
   const root = j(file.source);
+  const typeRestriction = Array.isArray(options['types'])
+    ? options['types']
+    : null;
 
   root.find(j.VariableDeclaration).map((path) => {
     path.node.declarations
@@ -55,11 +74,18 @@ export default function transform(
           isTSAsExpression(declarator.init) && !!declarator.init
             ? declarator.init.expression
             : declarator.init;
-        if (init && annotation) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
-          declarator.init = j.tsSatisfiesExpression(init, annotation as any);
+
+        if (
+          init &&
+          (isTSArrayType(annotation) || isTSTypeReference(annotation)) &&
+          (!typeRestriction ||
+            (isTSTypeReference(annotation) &&
+              isIdentifier(annotation.typeName) &&
+              typeRestriction.includes(annotation.typeName.name)))
+        ) {
+          declarator.init = j.tsSatisfiesExpression(init, annotation);
+          id.typeAnnotation = null;
         }
-        id.typeAnnotation = null;
       });
     return path;
   });

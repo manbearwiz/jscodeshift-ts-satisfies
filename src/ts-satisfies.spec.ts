@@ -5,16 +5,24 @@ describe('ts-satisfies', () => {
   defineInlineTest(
     transform,
     {},
-    `const applicationLevelRoutes: Model = { label: 'Label' };`,
-    `const applicationLevelRoutes = { label: 'Label' } satisfies Model;`,
+    `const route: Route = { label: 'Label' };`,
+    `const route = { label: 'Label' } satisfies Route;`,
     'handles simple types',
   );
 
   defineInlineTest(
     transform,
+    { types: ['Bar', 'Biz'] },
+    `const A = {} as Foo, B: Bar = {}, C = {} as Biz;`,
+    `const A = {} as Foo, B = {} satisfies Bar, C = {} satisfies Biz;`,
+    'handles type restrictions',
+  );
+
+  defineInlineTest(
+    transform,
     {},
-    `const applicationLevelRoutes: Model[] = [ { label: 'Label' } ];`,
-    `const applicationLevelRoutes = [ { label: 'Label' } ] satisfies Model[];`,
+    `const routes: Route[] = [ { label: 'Label' } ];`,
+    `const routes = [ { label: 'Label' } ] satisfies Route[];`,
     'handles array types',
   );
 
