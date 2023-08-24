@@ -36,6 +36,14 @@ describe('ts-satisfies', () => {
 
   defineInlineTest(
     transform,
+    { types: ['Meta'] },
+    `const meta: Meta<Foo> = {}, bar: Bar = {}; `,
+    `const meta = {} satisfies Meta<Foo>, bar: Bar = {}; `,
+    'handles generic type restriction',
+  );
+
+  defineInlineTest(
+    transform,
     {},
     `const A = {} as Foo, B: Bar = {};`,
     `const A = {} satisfies Foo, B = {} satisfies Bar;`,

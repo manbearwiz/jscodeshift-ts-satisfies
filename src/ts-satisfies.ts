@@ -4,8 +4,6 @@ import type {
   VariableDeclarator,
   Identifier,
   TSAsExpression,
-  JSXIdentifier,
-  TSTypeParameter,
   ArrowFunctionExpression,
   Node,
   Options,
@@ -13,37 +11,27 @@ import type {
   TSArrayType,
 } from 'jscodeshift';
 
-function isVariableDeclarator(
-  declaration:
-    | VariableDeclarator
-    | Identifier
-    | JSXIdentifier
-    | TSTypeParameter,
-): declaration is VariableDeclarator {
-  return declaration?.type === 'VariableDeclarator';
+interface NodeTypeMap {
+  VariableDeclarator: VariableDeclarator;
+  TSAsExpression: TSAsExpression;
+  ArrowFunctionExpression: ArrowFunctionExpression;
+  TSTypeReference: TSTypeReference;
+  TSArrayType: TSArrayType;
+  Identifier: Identifier;
 }
 
-function isTSAsExpression(node?: Node | null): node is TSAsExpression {
-  return node?.type === 'TSAsExpression';
+function nodeTypeGuard<T extends keyof NodeTypeMap>(
+  type: T,
+): (node?: Node | null) => node is NodeTypeMap[T] {
+  return (node?: Node | null): node is NodeTypeMap[T] => node?.type === type;
 }
 
-function isArrowFunctionExpression(
-  node?: Node | null,
-): node is ArrowFunctionExpression {
-  return node?.type === 'ArrowFunctionExpression';
-}
-
-function isTSTypeReference(node?: Node | null): node is TSTypeReference {
-  return node?.type === 'TSTypeReference';
-}
-
-function isTSArrayType(node?: Node | null): node is TSArrayType {
-  return node?.type === 'TSArrayType';
-}
-
-function isIdentifier(node?: Node | null): node is Identifier {
-  return node?.type === 'Identifier';
-}
+const isVariableDeclarator = nodeTypeGuard('VariableDeclarator');
+const isTSAsExpression = nodeTypeGuard('TSAsExpression');
+const isArrowFunctionExpression = nodeTypeGuard('ArrowFunctionExpression');
+const isTSTypeReference = nodeTypeGuard('TSTypeReference');
+const isTSArrayType = nodeTypeGuard('TSArrayType');
+const isIdentifier = nodeTypeGuard('Identifier');
 
 export default function transform(
   file: FileInfo,
