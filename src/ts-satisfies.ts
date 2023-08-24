@@ -1,23 +1,26 @@
-import type {
-  FileInfo,
+import {
   API,
-  VariableDeclarator,
+  ArrayExpression,
+  FileInfo,
   Identifier,
-  TSAsExpression,
-  ArrowFunctionExpression,
   Node,
+  ObjectExpression,
   Options,
-  TSTypeReference,
   TSArrayType,
+  TSAsExpression,
+  TSTypeReference,
+  VariableDeclarator,
 } from 'jscodeshift';
 
 interface NodeTypeMap {
-  VariableDeclarator: VariableDeclarator;
-  TSAsExpression: TSAsExpression;
-  ArrowFunctionExpression: ArrowFunctionExpression;
-  TSTypeReference: TSTypeReference;
-  TSArrayType: TSArrayType;
+  ArrayExpression: ArrayExpression;
+  ArrayOrObjectExpression: ArrayExpression | ObjectExpression;
   Identifier: Identifier;
+  ObjectExpression: ObjectExpression;
+  TSArrayType: TSArrayType;
+  TSAsExpression: TSAsExpression;
+  TSTypeReference: TSTypeReference;
+  VariableDeclarator: VariableDeclarator;
 }
 
 function nodeTypeGuard<T extends keyof NodeTypeMap>(
@@ -26,12 +29,19 @@ function nodeTypeGuard<T extends keyof NodeTypeMap>(
   return (node?: Node | null): node is NodeTypeMap[T] => node?.type === type;
 }
 
-const isVariableDeclarator = nodeTypeGuard('VariableDeclarator');
-const isTSAsExpression = nodeTypeGuard('TSAsExpression');
-const isArrowFunctionExpression = nodeTypeGuard('ArrowFunctionExpression');
-const isTSTypeReference = nodeTypeGuard('TSTypeReference');
-const isTSArrayType = nodeTypeGuard('TSArrayType');
+const isArrayExpression = nodeTypeGuard('ArrayExpression');
 const isIdentifier = nodeTypeGuard('Identifier');
+const isObjectExpression = nodeTypeGuard('ObjectExpression');
+const isTSArrayType = nodeTypeGuard('TSArrayType');
+const isTSAsExpression = nodeTypeGuard('TSAsExpression');
+const isTSTypeReference = nodeTypeGuard('TSTypeReference');
+const isVariableDeclarator = nodeTypeGuard('VariableDeclarator');
+
+function isArrayOrObjectExpression(
+  node?: Node | null,
+): node is ArrayExpression | ObjectExpression {
+  return isArrayExpression(node) || isObjectExpression(node);
+}
 
 export default function transform(
   file: FileInfo,
@@ -50,8 +60,9 @@ export default function transform(
       .filter(
         (d) =>
           d.id.type === 'Identifier' &&
-          !isArrowFunctionExpression(d.init) &&
-          (!!d.id.typeAnnotation || isTSAsExpression(d?.init)),
+          ((isTSAsExpression(d?.init) &&
+            isArrayOrObjectExpression(d.init.expression)) ||
+            (d.id.typeAnnotation && isArrayOrObjectExpression(d.init))),
       )
       .forEach((declarator) => {
         const id = declarator.id as Identifier;

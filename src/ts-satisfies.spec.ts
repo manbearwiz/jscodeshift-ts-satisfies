@@ -61,16 +61,24 @@ describe('ts-satisfies', () => {
   defineInlineTest(
     transform,
     {},
-    `build({ field: null, isVisible: true } as Foo);`,
-    `build({ field: null, isVisible: true } satisfies Foo);`,
+    `f({ foo: null } as Foo);`,
+    `f({ foo: null } satisfies Foo);`,
     'handles function args',
   );
 
   defineInlineTest(
     transform,
     {},
-    `const Default: Fn = () => { return null; }`,
-    `const Default: Fn = () => { return null; }`,
+    `const x: Fn = () => { return null; }`,
+    `const x: Fn = () => { return null; }`,
     'not modify function',
+  );
+
+  defineInlineTest(
+    transform,
+    {},
+    `const x = bar.foo as Foo`,
+    `const x = bar.foo as Foo`,
+    'not modify casts',
   );
 });
