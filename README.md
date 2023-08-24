@@ -1,7 +1,6 @@
 # jscodeshift-ts-satisfies
 
 [![npm](https://img.shields.io/npm/v/jscodeshift-ts-satisfies?style=flat-square)](https://www.npmjs.com/package/jscodeshift-ts-satisfies?activeTab=versions)
-[![npm bundle size](https://img.shields.io/bundlephobia/minzip/jscodeshift-ts-satisfies?style=flat-square)](https://bundlephobia.com/package/jscodeshift-ts-satisfies)
 [![NPM](https://img.shields.io/npm/l/jscodeshift-ts-satisfies?style=flat-square)](https://raw.githubusercontent.com/manbearwiz/jscodeshift-ts-satisfies/master/LICENSE)
 [![npm](https://img.shields.io/npm/dt/jscodeshift-ts-satisfies?style=flat-square)](https://www.npmjs.com/package/jscodeshift-ts-satisfies)
 [![GitHub issues](https://img.shields.io/github/issues/manbearwiz/jscodeshift-ts-satisfies?style=flat-square)](https://github.com/manbearwiz/jscodeshift-ts-satisfies/issues)
@@ -15,11 +14,11 @@ Install [`jscodeshift`](https://github.com/facebook/jscodeshift) to run the
 codemod script:
 
 ```sh
-npm install -g jscodeshift
+npm install -g jscodeshift jscodeshift-ts-satisfies
 ```
 
 ## Usage
 
 ```sh
-jscodeshift -t https://rawgit.com/scalvert/jscodeshift-ts-satisfies/master/jscodeshift-ts-satisfies.js ./tests/
+jscodeshift -t node_modules/jscodeshift-ts-satisfies/src/ts-satisfies.ts  stories/**/*.ts
 ```
