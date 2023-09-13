@@ -14,3 +14,7 @@ parserOptions:
 plugins:
   - '@typescript-eslint'
 rules: {}
+overrides:
+  - files: '*.{config,spec}.ts'
+    extends:
+      - plugin:@typescript-eslint/disable-type-checked
