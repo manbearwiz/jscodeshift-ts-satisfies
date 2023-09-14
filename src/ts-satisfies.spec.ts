@@ -1,6 +1,7 @@
 import { runInlineTest } from 'jscodeshift/src/testUtils';
 import * as transform from './ts-satisfies';
 import { Options } from 'jscodeshift';
+import { describe, it } from 'vitest';
 
 function transformTest(
   input: string,
@@ -26,6 +27,21 @@ describe('ts-satisfies', () => {
     );
   });
 
+  it('handle default exports types', () => {
+    transformTest(
+      `export default { title: 'Title' } as Meta;`,
+      `export default { title: 'Title' } satisfies Meta;`,
+    );
+  });
+
+  it('handle default exports types with type restriction', () => {
+    transformTest(
+      `export default { title: 'Title' } as Meta;`,
+      `export default { title: 'Title' } satisfies Meta;`,
+      { types: ['Meta'] },
+    );
+  });
+
   it('handles array types', () => {
     transformTest(
       `const a: T[] = [ { a: 1 } ];`,
@@ -35,6 +51,14 @@ describe('ts-satisfies', () => {
 
   it('not modify empty arrays', () => {
     transformTest(`const a: T[] = []`, `const a: T[] = []`);
+  });
+
+  it('handles type restrictions on arrays', () => {
+    transformTest(
+      `const a: T[] = [ { a: 1 } ], b: U[] = [ { a: 1 } ];`,
+      `const a = [ { a: 1 } ] satisfies T[], b: U[] = [ { a: 1 } ];`,
+      { types: ['T'] },
+    );
   });
 
   it('handles generic types', () => {
@@ -67,12 +91,35 @@ describe('ts-satisfies', () => {
     transformTest(`f({ foo: null } as T);`, `f({ foo: null } satisfies T);`);
   });
 
+  it('handles function args with multiple args', () => {
+    transformTest(
+      `f({ foo: null } as T, { bar: null } as U);`,
+      `f({ foo: null } satisfies T, { bar: null } satisfies U);`,
+    );
+  });
+
+  it('handles function args with type restriction', () => {
+    transformTest(
+      `f({ foo: null } as T, { bar: null } as U);`,
+      `f({ foo: null } satisfies T, { bar: null } as U);`,
+      { types: ['T'] },
+    );
+  });
+
   it('not modify function', () => {
     transformTest(`const x: Fn = () => null`, `const x: Fn = () => null`);
   });
 
   it('not modify casts', () => {
     transformTest(`const x = bar.foo as T`, `const x = bar.foo as T`);
+  });
+
+  it('not modify casts to any', () => {
+    transformTest(`const foo = bar as any`, `const foo = bar as any`);
+  });
+
+  it('not modify casts to any in functions', () => {
+    transformTest(`fn({ a: 1 } as any)`, `fn({ a: 1 } as any)`);
   });
 
   it('not modify const assertions', () => {
