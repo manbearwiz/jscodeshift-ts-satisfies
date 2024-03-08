@@ -5,6 +5,7 @@ export default defineConfig({
     environment: 'happy-dom',
     globals: true,
     coverage: {
+      exclude: ['*.config.js'],
       statements: 80,
       branches: 80,
       functions: 80,
