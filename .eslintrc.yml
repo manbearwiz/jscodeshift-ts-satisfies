@@ -15,6 +15,6 @@ plugins:
   - '@typescript-eslint'
 rules: {}
 overrides:
-  - files: '*.{config,spec}.ts'
+  - files: '*.{config,spec}.{js,ts}'
     extends:
       - plugin:@typescript-eslint/disable-type-checked
