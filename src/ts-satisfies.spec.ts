@@ -19,6 +19,20 @@ describe('ts-satisfies', () => {
     );
   });
 
+  it('handles string unions', () => {
+    transformTest(
+      `const align: 'left' | 'right' = 'left';`,
+      `const align = 'left' satisfies 'left' | 'right';`,
+    );
+  });
+
+  it('handles intersection types', () => {
+    transformTest(
+      `const artist: Artist & Error = { error: 'foo'};`,
+      `const artist = { error: 'foo'} satisfies Artist & Error;`,
+    );
+  });
+
   it('handles type restrictions', () => {
     transformTest(
       `const A = {} as T, B: U = {}, C = {} as V;`,
@@ -27,10 +41,44 @@ describe('ts-satisfies', () => {
     );
   });
 
+  it('handles expression restrictions (declaration)', () => {
+    transformTest(
+      `const A: T = { foo: 1 }, B = { foo: 2 } as U;`,
+      `const A = { foo: 1 } satisfies T, B = { foo: 2 } as U;`,
+      {
+        expressions: ['declaration'],
+      },
+    );
+  });
+
+  it('handles expression restrictions (cast)', () => {
+    transformTest(
+      `const A: T = { foo: 1 }, B = { foo: 2 } as U;`,
+      `const A: T = { foo: 1 }, B = { foo: 2 } satisfies U;`,
+      {
+        expressions: ['cast'],
+      },
+    );
+  });
+
+  it('handles no expression restrictions', () => {
+    transformTest(
+      `const A: T = { foo: 1 }, B = { foo: 2 } as U;`,
+      `const A = { foo: 1 } satisfies T, B = { foo: 2 } satisfies U;`,
+    );
+  });
+
   it('handle default exports types', () => {
     transformTest(
       `export default { title: 'Title' } as Meta;`,
       `export default { title: 'Title' } satisfies Meta;`,
+    );
+  });
+
+  it('handle declarations with type assertions', () => {
+    transformTest(
+      `const x = <Meta>{ title: 'Title' };`,
+      `const x = { title: 'Title' } satisfies Meta;`,
     );
   });
 
@@ -61,6 +109,22 @@ describe('ts-satisfies', () => {
     );
   });
 
+  it('handles type restrictions on unions', () => {
+    transformTest(
+      `const a: A | B = { a: 1 }, b: B | C = { a: 2 };`,
+      `const a = { a: 1 } satisfies A | B, b: B | C = { a: 2 };`,
+      { types: ['A'] },
+    );
+  });
+
+  it('handles type restrictions on intersections', () => {
+    transformTest(
+      `const a: A & B = { a: 1 }, b: B & C = { a: 2 };`,
+      `const a = { a: 1 } satisfies A & B, b: B & C = { a: 2 };`,
+      { types: ['A'] },
+    );
+  });
+
   it('handles generic types', () => {
     transformTest(
       `const meta: Meta<T> = { title: 'Title' }; `,
@@ -87,23 +151,8 @@ describe('ts-satisfies', () => {
     transformTest(`const A: T = {} as T;`, `const A = {} satisfies T;`);
   });
 
-  it('handles function args', () => {
-    transformTest(`f({ foo: null } as T);`, `f({ foo: null } satisfies T);`);
-  });
-
-  it('handles function args with multiple args', () => {
-    transformTest(
-      `f({ foo: null } as T, { bar: null } as U);`,
-      `f({ foo: null } satisfies T, { bar: null } satisfies U);`,
-    );
-  });
-
-  it('handles function args with type restriction', () => {
-    transformTest(
-      `f({ foo: null } as T, { bar: null } as U);`,
-      `f({ foo: null } satisfies T, { bar: null } as U);`,
-      { types: ['T'] },
-    );
+  it('skips function args', () => {
+    transformTest(`f({ foo: null } as T);`, `f({ foo: null } as T);`);
   });
 
   it('not modify function', () => {

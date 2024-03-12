@@ -31,14 +31,14 @@
     "semantic-release": "semantic-release"
   },
   "dependencies": {
-    "jscodeshift": "^0.15.0"
+    "jscodeshift": "^0.15.2"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.0.3",
     "@commitlint/config-angular": "^19.0.3",
     "@tsconfig/recommended": "^1.0.2",
     "@tsconfig/strictest": "^2.0.1",
-    "@types/jscodeshift": "^0.11.6",
+    "@types/jscodeshift": "^0.11.11",
     "@types/node": "^18.0.0",
     "@typescript-eslint/eslint-plugin": "^6.4.1",
     "@typescript-eslint/parser": "^6.4.1",

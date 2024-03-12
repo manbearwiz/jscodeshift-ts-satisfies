@@ -2,55 +2,23 @@ import type {
   API,
   ASTNode,
   ASTPath,
-  ArrayExpression,
   FileInfo,
-  Identifier,
   JSCodeshift,
   Node,
-  ObjectExpression,
   Options,
   TSArrayType,
   TSAsExpression,
   TSSatisfiesExpression,
   TSTypeReference,
-  VariableDeclarator,
-  TSType,
+  TSTypeAssertion,
+  TSUnionType,
 } from 'jscodeshift';
 
-/**
- * Check if node is an ArrayExpression or ObjectExpression
- * @param j JSCodeshift API reference
- * @param node Node to check
- * @returns true if node is an ArrayExpression or ObjectExpression, false otherwise
- */
-function isArrayOrObjectExpression(
+function isTypeAssertionOrAsExpression(
   j: JSCodeshift,
   node?: Node | null,
-): node is ArrayExpression | ObjectExpression {
-  return (
-    (j.ArrayExpression.check(node) && !!node.elements.length) ||
-    j.ObjectExpression.check(node)
-  );
-}
-
-/**
- * Get the TSAsExpression from a VariableDeclarator or ExportDefaultDeclaration
- * @param j JSCodeshift API reference
- * @param node Node to get TSAsExpression from
- * @returns TSAsExpression if node is a VariableDeclarator or ExportDefaultDeclaration, null otherwise
- */
-function getAsExpression(
-  j: JSCodeshift,
-  node?: Node | null,
-): TSAsExpression | null {
-  let asExpression;
-  if (j.VariableDeclarator.check(node)) {
-    asExpression = node.init;
-  } else if (j.ExportDefaultDeclaration.check(node)) {
-    asExpression = node.declaration;
-  }
-
-  return j.TSAsExpression.check(asExpression) ? asExpression : null;
+): node is TSAsExpression | TSTypeAssertion {
+  return j.TSAsExpression.check(node) || j.TSTypeAssertion.check(node);
 }
 
 /**
@@ -61,11 +29,12 @@ function getAsExpression(
  */
 function convertAsExpression(
   j: JSCodeshift,
-  node?: Node | null,
+  asExpression: TSAsExpression | TSTypeAssertion,
 ): TSSatisfiesExpression {
-  const { typeAnnotation, expression } = getAsExpression(j, node)!;
-
-  return j.tsSatisfiesExpression(expression, typeAnnotation);
+  return j.tsSatisfiesExpression(
+    asExpression.expression,
+    asExpression.typeAnnotation,
+  );
 }
 
 /**
@@ -79,39 +48,13 @@ function validTypeAnnotation(
   annotation?: Node | null,
 ): annotation is TSArrayType | TSTypeReference {
   return (
+    j.TSUnionType.check(annotation) ||
+    j.TSIntersectionType.check(annotation) ||
     j.TSArrayType.check(annotation) ||
     (j.TSTypeReference.check(annotation) &&
       j.Identifier.check(annotation.typeName) &&
       annotation.typeName.name !== 'const')
   );
-}
-
-/**
- * Extract name from a TSType
- * @param j JSCodeshift API reference
- * @param reference TSType to extract name from
- * @returns name of TSType if it is a TSTypeReference with an Identifier, null otherwise
- */
-function extractNameFromTypeReference(
-  j: JSCodeshift,
-  reference: TSType,
-): string | null {
-  return j.TSTypeReference.check(reference) &&
-    j.Identifier.check(reference.typeName)
-    ? reference.typeName.name
-    : null;
-}
-
-function getTypeNameFromType(
-  j: JSCodeshift,
-  annotation: TSTypeReference | TSArrayType,
-): string | null {
-  if (j.TSTypeReference.check(annotation)) {
-    return extractNameFromTypeReference(j, annotation);
-  } else if (j.TSArrayType.check(annotation)) {
-    return extractNameFromTypeReference(j, annotation.elementType);
-  }
-  return null;
 }
 
 /**
@@ -126,8 +69,22 @@ function restrictTypeAnnotation(
   annotation: TSTypeReference | TSArrayType,
   typeRestriction?: string[] | null,
 ): boolean {
-  const typeName = getTypeNameFromType(j, annotation);
-  return !typeRestriction || (!!typeName && typeRestriction.includes(typeName));
+  const typeRefs = j.TSArrayType.check(annotation)
+    ? [annotation.elementType]
+    : j.TSUnionType.check(annotation) || j.TSIntersectionType.check(annotation)
+    ? (annotation as TSUnionType).types
+    : [annotation];
+
+  return typeRefs.some((typeRef) => {
+    const typeName =
+      j.TSTypeReference.check(typeRef) &&
+      j.Identifier.check(typeRef.typeName) &&
+      typeRef.typeName.name;
+
+    return (
+      !typeRestriction || (!!typeName && typeRestriction.includes(typeName))
+    );
+  });
 }
 
 export default function transform(
@@ -140,69 +97,56 @@ export default function transform(
   const typeRestriction = Array.isArray(options['types'])
     ? (options['types'] as string[])
     : null;
+  const expressionRestriction = Array.isArray(options['expressions'])
+    ? (options['expressions'] as string[])
+    : ['declaration', 'cast'];
 
-  root
-    .find(j.TSAsExpression)
-    .map((x) => x.parent as ASTPath<ASTNode>)
-    .filter(({ node }) => {
-      const asExpression = getAsExpression(j, node)!;
-
-      return (
-        isArrayOrObjectExpression(j, asExpression?.expression) &&
-        validTypeAnnotation(j, asExpression.typeAnnotation) &&
-        restrictTypeAnnotation(j, asExpression.typeAnnotation, typeRestriction)
-      );
-    })
-    .forEach(({ node }) => {
-      const tsSatisfiesExpression = convertAsExpression(j, node)!;
-
-      if (j.ExportDefaultDeclaration.check(node)) {
-        node.declaration = tsSatisfiesExpression;
-      }
-
-      if (j.VariableDeclarator.check(node)) {
-        node.init = tsSatisfiesExpression;
-        (node.id as Identifier).typeAnnotation = null;
-      }
-    });
-
-  root.find(j.VariableDeclaration).forEach((path) => {
-    path.node.declarations
-      .filter(
-        (d): d is VariableDeclarator =>
-          j.VariableDeclarator.check(d) &&
-          j.Identifier.check(d.id) &&
-          !!d.id.typeAnnotation &&
-          isArrayOrObjectExpression(j, d.init),
-      )
-      .forEach((declarator) => {
-        const id = declarator.id as Identifier;
-        const annotation = id.typeAnnotation?.typeAnnotation;
-
+  [
+    root.find(j.ObjectExpression),
+    root.find(j.ArrayExpression, (node) => !!node.elements.length),
+    root.find(j.StringLiteral),
+  ].forEach((expressionCollection) =>
+    expressionCollection
+      .map((x) => x.parent as ASTPath<ASTNode>)
+      .forEach(({ node, parent }) => {
         if (
-          declarator.init &&
-          validTypeAnnotation(j, annotation) &&
-          restrictTypeAnnotation(j, annotation, typeRestriction)
+          expressionRestriction.includes('cast') &&
+          isTypeAssertionOrAsExpression(j, node) &&
+          validTypeAnnotation(j, node.typeAnnotation) &&
+          restrictTypeAnnotation(j, node.typeAnnotation, typeRestriction)
         ) {
-          declarator.init = j.tsSatisfiesExpression(
-            declarator.init,
-            annotation,
-          );
-          id.typeAnnotation = null;
-        }
-      });
-  });
+          const parentNode = (parent as ASTPath<ASTNode>).node;
+          const tsSatisfiesExpression = convertAsExpression(j, node);
 
-  root.find(j.CallExpression).forEach(({ node }) => {
-    node.arguments = node.arguments.map((arg) =>
-      j.TSAsExpression.check(arg) &&
-      isArrayOrObjectExpression(j, arg.expression) &&
-      validTypeAnnotation(j, arg.typeAnnotation) &&
-      restrictTypeAnnotation(j, arg.typeAnnotation, typeRestriction)
-        ? j.tsSatisfiesExpression(arg.expression, arg.typeAnnotation)
-        : arg,
-    );
-  });
+          if (j.ExportDefaultDeclaration.check(parentNode)) {
+            parentNode.declaration = tsSatisfiesExpression;
+          } else if (
+            j.VariableDeclarator.check(parentNode) &&
+            j.Identifier.check(parentNode.id)
+          ) {
+            parentNode.init = tsSatisfiesExpression;
+            parentNode.id.typeAnnotation = null;
+          }
+        } else if (
+          expressionRestriction.includes('declaration') &&
+          j.VariableDeclarator.check(node) &&
+          j.Identifier.check(node.id) &&
+          node.init &&
+          validTypeAnnotation(j, node.id.typeAnnotation?.typeAnnotation) &&
+          restrictTypeAnnotation(
+            j,
+            node.id.typeAnnotation?.typeAnnotation,
+            typeRestriction,
+          )
+        ) {
+          node.init = j.tsSatisfiesExpression(
+            node.init,
+            node.id.typeAnnotation?.typeAnnotation,
+          );
+          node.id.typeAnnotation = null;
+        }
+      }),
+  );
 
   return root.toSource();
 }
