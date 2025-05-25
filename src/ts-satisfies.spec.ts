@@ -1,7 +1,7 @@
+import type { Options } from 'jscodeshift';
 import { runInlineTest } from 'jscodeshift/src/testUtils';
-import * as transform from './ts-satisfies';
-import { Options } from 'jscodeshift';
 import { describe, it } from 'vitest';
+import * as transform from './ts-satisfies';
 
 function transformTest(
   input: string,

@@ -1,15 +1,16 @@
-import { defineConfig } from 'vite';
-
-export default defineConfig({
+import type { ViteUserConfig } from 'vitest/config';
+export default {
   test: {
     environment: 'happy-dom',
     globals: true,
     coverage: {
-      exclude: ['*.config.?(c|m)[jt]s'],
-      statements: 80,
-      branches: 80,
-      functions: 80,
-      lines: 80,
+      exclude: ['*.config.?(c|m)[jt]s', 'dist'],
+      thresholds: {
+        statements: 100,
+        branches: 100,
+        functions: 100,
+        lines: 100,
+      },
     },
   },
-});
+} satisfies ViteUserConfig;

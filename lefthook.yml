@@ -1,0 +1,33 @@
+output:
+  - failure
+
+commit-msg:
+  scripts:
+    "commitlint.sh":
+      runner: bash
+
+pre-commit:
+  parallel: true
+  commands:
+    format:
+      glob: "*.{js,ts,cjs,mjs,d.cts,d.mts,jsx,tsx,json,jsonc}"
+      run: npx @biomejs/biome check --write --no-errors-on-unmatched --files-ignore-unknown=true {staged_files}
+      stage_fixed: true
+    branch-name:
+      run: '[ "$(git symbolic-ref --quiet --short HEAD)" == "main" ] && exit 1 || exit 0'
+      fail_text: "You can't commit to main branch"
+    test:
+      glob: "*.ts"
+      run: npx vitest related --reporter=vitest-tiny-reporter --run {staged_files}
+      fail_text: "Tests failed"
+      env:
+        TERM: dumb
+
+pre-push:
+  parallel: true
+  commands:
+    test:
+      run: npx vitest --run --coverage --reporter=vitest-tiny-reporter
+      fail_text: "Tests failed"
+    check_format:
+      run: npx @biomejs/biome check --no-errors-on-unmatched --files-ignore-unknown=true .

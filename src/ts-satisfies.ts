@@ -9,8 +9,8 @@ import type {
   TSArrayType,
   TSAsExpression,
   TSSatisfiesExpression,
-  TSTypeReference,
   TSTypeAssertion,
+  TSTypeReference,
   TSUnionType,
 } from 'jscodeshift';
 
