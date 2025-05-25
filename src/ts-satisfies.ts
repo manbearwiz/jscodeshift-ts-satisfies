@@ -72,8 +72,8 @@ function restrictTypeAnnotation(
   const typeRefs = j.TSArrayType.check(annotation)
     ? [annotation.elementType]
     : j.TSUnionType.check(annotation) || j.TSIntersectionType.check(annotation)
-    ? (annotation as TSUnionType).types
-    : [annotation];
+      ? (annotation as TSUnionType).types
+      : [annotation];
 
   return typeRefs.some((typeRef) => {
     const typeName =
