@@ -35,16 +35,16 @@ describe('ts-satisfies', () => {
 
   it('handles type restrictions', () => {
     transformTest(
-      `const A = {} as T, B: U = {}, C = {} as V;`,
-      `const A = {} as T, B = {} satisfies U, C = {} satisfies V;`,
+      'const A = {} as T, B: U = {}, C = {} as V;',
+      'const A = {} as T, B = {} satisfies U, C = {} satisfies V;',
       { types: ['U', 'V'] },
     );
   });
 
   it('handles expression restrictions (declaration)', () => {
     transformTest(
-      `const A: T = { foo: 1 }, B = { foo: 2 } as U;`,
-      `const A = { foo: 1 } satisfies T, B = { foo: 2 } as U;`,
+      'const A: T = { foo: 1 }, B = { foo: 2 } as U;',
+      'const A = { foo: 1 } satisfies T, B = { foo: 2 } as U;',
       {
         expressions: ['declaration'],
       },
@@ -53,8 +53,8 @@ describe('ts-satisfies', () => {
 
   it('handles expression restrictions (cast)', () => {
     transformTest(
-      `const A: T = { foo: 1 }, B = { foo: 2 } as U;`,
-      `const A: T = { foo: 1 }, B = { foo: 2 } satisfies U;`,
+      'const A: T = { foo: 1 }, B = { foo: 2 } as U;',
+      'const A: T = { foo: 1 }, B = { foo: 2 } satisfies U;',
       {
         expressions: ['cast'],
       },
@@ -63,8 +63,8 @@ describe('ts-satisfies', () => {
 
   it('handles no expression restrictions', () => {
     transformTest(
-      `const A: T = { foo: 1 }, B = { foo: 2 } as U;`,
-      `const A = { foo: 1 } satisfies T, B = { foo: 2 } satisfies U;`,
+      'const A: T = { foo: 1 }, B = { foo: 2 } as U;',
+      'const A = { foo: 1 } satisfies T, B = { foo: 2 } satisfies U;',
     );
   });
 
@@ -92,35 +92,35 @@ describe('ts-satisfies', () => {
 
   it('handles array types', () => {
     transformTest(
-      `const a: T[] = [ { a: 1 } ];`,
-      `const a = [ { a: 1 } ] satisfies T[];`,
+      'const a: T[] = [ { a: 1 } ];',
+      'const a = [ { a: 1 } ] satisfies T[];',
     );
   });
 
   it('not modify empty arrays', () => {
-    transformTest(`const a: T[] = []`, `const a: T[] = []`);
+    transformTest('const a: T[] = []', 'const a: T[] = []');
   });
 
   it('handles type restrictions on arrays', () => {
     transformTest(
-      `const a: T[] = [ { a: 1 } ], b: U[] = [ { a: 1 } ];`,
-      `const a = [ { a: 1 } ] satisfies T[], b: U[] = [ { a: 1 } ];`,
+      'const a: T[] = [ { a: 1 } ], b: U[] = [ { a: 1 } ];',
+      'const a = [ { a: 1 } ] satisfies T[], b: U[] = [ { a: 1 } ];',
       { types: ['T'] },
     );
   });
 
   it('handles type restrictions on unions', () => {
     transformTest(
-      `const a: A | B = { a: 1 }, b: B | C = { a: 2 };`,
-      `const a = { a: 1 } satisfies A | B, b: B | C = { a: 2 };`,
+      'const a: A | B = { a: 1 }, b: B | C = { a: 2 };',
+      'const a = { a: 1 } satisfies A | B, b: B | C = { a: 2 };',
       { types: ['A'] },
     );
   });
 
   it('handles type restrictions on intersections', () => {
     transformTest(
-      `const a: A & B = { a: 1 }, b: B & C = { a: 2 };`,
-      `const a = { a: 1 } satisfies A & B, b: B & C = { a: 2 };`,
+      'const a: A & B = { a: 1 }, b: B & C = { a: 2 };',
+      'const a = { a: 1 } satisfies A & B, b: B & C = { a: 2 };',
       { types: ['A'] },
     );
   });
@@ -134,41 +134,41 @@ describe('ts-satisfies', () => {
 
   it('handles generic type restriction', () => {
     transformTest(
-      `const meta: Meta<T> = {}, bar: Bar = {}; `,
-      `const meta = {} satisfies Meta<T>, bar: Bar = {}; `,
+      'const meta: Meta<T> = {}, bar: Bar = {}; ',
+      'const meta = {} satisfies Meta<T>, bar: Bar = {}; ',
       { types: ['Meta'] },
     );
   });
 
   it('handles multiple declarations', () => {
     transformTest(
-      `const A = {} as T, B: Bar = {};`,
-      `const A = {} satisfies T, B = {} satisfies Bar;`,
+      'const A = {} as T, B: Bar = {};',
+      'const A = {} satisfies T, B = {} satisfies Bar;',
     );
   });
 
   it('handles both type annotations', () => {
-    transformTest(`const A: T = {} as T;`, `const A = {} satisfies T;`);
+    transformTest('const A: T = {} as T;', 'const A = {} satisfies T;');
   });
 
   it('skips function args', () => {
-    transformTest(`f({ foo: null } as T);`, `f({ foo: null } as T);`);
+    transformTest('f({ foo: null } as T);', 'f({ foo: null } as T);');
   });
 
   it('not modify function', () => {
-    transformTest(`const x: Fn = () => null`, `const x: Fn = () => null`);
+    transformTest('const x: Fn = () => null', 'const x: Fn = () => null');
   });
 
   it('not modify casts', () => {
-    transformTest(`const x = bar.foo as T`, `const x = bar.foo as T`);
+    transformTest('const x = bar.foo as T', 'const x = bar.foo as T');
   });
 
   it('not modify casts to any', () => {
-    transformTest(`const foo = bar as any`, `const foo = bar as any`);
+    transformTest('const foo = bar as any', 'const foo = bar as any');
   });
 
   it('not modify casts to any in functions', () => {
-    transformTest(`fn({ a: 1 } as any)`, `fn({ a: 1 } as any)`);
+    transformTest('fn({ a: 1 } as any)', 'fn({ a: 1 } as any)');
   });
 
   it('not modify const assertions', () => {
@@ -179,10 +179,10 @@ describe('ts-satisfies', () => {
   });
 
   it('not modify intentional any conversions in functions', () => {
-    transformTest(`fn({} as any as T)`, `fn({} as any as T)`);
+    transformTest('fn({} as any as T)', 'fn({} as any as T)');
   });
 
   it('not modify intentional any conversions in declarations', () => {
-    transformTest(`const a = ({} as any) as T`, `const a = ({} as any) as T`);
+    transformTest('const a = ({} as any) as T', 'const a = ({} as any) as T');
   });
 });
