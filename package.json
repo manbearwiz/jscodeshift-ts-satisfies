@@ -35,7 +35,7 @@
     "@types/jscodeshift": "^17.3.0",
     "@types/node": "^22.6.1",
     "@vitest/coverage-v8": "^3.1.4",
-    "@vitest/ui": "^3.1.4",
+    "@vitest/ui": "^4.0.4",
     "happy-dom": "^17.4.4",
     "lefthook": "^1.7.16",
     "semantic-release": "^24.1.1",
