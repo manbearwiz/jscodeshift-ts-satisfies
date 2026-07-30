@@ -34,13 +34,13 @@
     "@tsconfig/strictest": "^2.0.1",
     "@types/jscodeshift": "^17.3.0",
     "@types/node": "^22.6.1",
-    "@vitest/coverage-v8": "^3.1.4",
-    "@vitest/ui": "^3.1.4",
-    "happy-dom": "^17.4.4",
+    "@vitest/coverage-v8": "^4.1.10",
+    "@vitest/ui": "^4.1.10",
+    "happy-dom": "^20.11.1",
     "lefthook": "^1.7.16",
-    "semantic-release": "^24.1.1",
+    "semantic-release": "^25.0.8",
     "typescript": "^5.1.6",
-    "vitest": "^3.1.4",
+    "vitest": "^4.1.10",
     "vitest-tiny-reporter": "^1.2.0"
   },
   "overrides": {
